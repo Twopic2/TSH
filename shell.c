@@ -12,7 +12,7 @@ int tshcd(char **args);
 int tshexit(char **args);
 
 char *builtin_str[] = {
-    "cd",
+    "tcd",
     "exit"
 };
 
@@ -38,8 +38,12 @@ int tshcd(char **args) {
 
 int tshexit(char **args) {
     return 0;
+
 }
 
+int list() {
+    
+}
 
 char *tshread() {
     char *line = NULL;
@@ -94,6 +98,7 @@ int launch(char **args) {
     int state;
 
     if (pid == 0) {
+        // This is the child process
         if (execvp(args[0], args) == -1) {
             perror("tsh");
         }
@@ -127,6 +132,18 @@ void tsh_loop(void) {
     char *line;
     char **args;
     int state;
+
+    printf("Welcome to TSH (Twopic Shell)!\n");
+    printf(
+        "/__  ___/ //   ) )  //    / / \n"
+        "   / /    ((        //___ / /  \n"
+        "  / /       \\     / ___   /   \n"
+        " / /          ) ) //    / /    \n"
+        "/ /    ((___ / / //    / /     \n"
+        
+    );
+    
+    printf("\n");
 
     do {
         printf("$ ");
