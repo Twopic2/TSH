@@ -4,21 +4,31 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>  
+#include <pwd.h>       
+#include <grp.h>       
+#include <time.h>      
 
 #define TSH_TOK_BUFSIZE 64
 #define TSH_TOK_DELIM " \t\r\n\a"
 
+
+//Prototypes
 int tshcd(char **args);
 int tshexit(char **args);
+int list(char **args);
 
 char *builtin_str[] = {
     "tcd",
-    "exit"
+    "exit",
+    "tls"
 };
 
 int (*builtin_func[]) (char **) = {
     &tshcd,
-    &tshexit
+    &tshexit,
+    &list
 };
 
 int tshnums() {
@@ -41,7 +51,70 @@ int tshexit(char **args) {
 
 }
 
-int list() {
+int list(char **args) {
+
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(".");
+    int dashL = 0;
+
+    // shows permissions 
+    if (args[1] && strcmp(args[1], "-l") == 0) {
+        dashL = 1;
+
+    }
+
+    if (dir == NULL) {
+        perror("TSH ls stopped");
+        return 1;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        // -a shows hidden files starting with .
+        if (args[1] && strcmp(args[1], "-a") == 0) {
+            printf("%s\n", entry->d_name);
+        } 
+        if (dashL) {
+
+            struct stat file_stat;
+
+            if (stat(entry->d_name, &file_stat)) {
+                perror("tsh: tls");
+                continue;
+            }
+
+            printf((S_ISDIR(file_stat.st_mode)) ? "d" : "-");
+            printf("%s%s%s%s%s%s%s%s%s",
+                (file_stat.st_mode & S_IRUSR) ? "r" : "-",
+                (file_stat.st_mode & S_IWUSR) ? "w" : "-",
+                (file_stat.st_mode & S_IXUSR) ? "x" : "-",
+                (file_stat.st_mode & S_IRGRP) ? "r" : "-",
+                (file_stat.st_mode & S_IWGRP) ? "w" : "-",
+                (file_stat.st_mode & S_IXGRP) ? "x" : "-",
+                (file_stat.st_mode & S_IROTH) ? "r" : "-",
+                (file_stat.st_mode & S_IWOTH) ? "w" : "-",
+                (file_stat.st_mode & S_IXOTH) ? "x" : "-");
+
+            // Details
+            printf(" %ld %s %s %5lld ",
+                   (long)file_stat.st_nlink,
+                   getpwuid(file_stat.st_uid)->pw_name,
+                   getgrgid(file_stat.st_gid)->gr_name,
+                   (long long)file_stat.st_size);
+
+            // Time
+            char time_buf[80];
+            printf("%s %s\n", time_buf, entry->d_name);
+        } else {
+            printf("%s\n", entry->d_name);
+
+        }
+
+    }
+
+    closedir(dir);
+    return 1;
     
 }
 
