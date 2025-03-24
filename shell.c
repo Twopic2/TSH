@@ -18,17 +18,20 @@
 int tshcd(char **args);
 int tshexit(char **args);
 int list(char **args);
+int tcat(char **args);
 
 char *builtin_str[] = {
     "tcd",
     "exit",
-    "tls"
+    "tls",
+    "tcat"
 };
 
 int (*builtin_func[]) (char **) = {
     &tshcd,
     &tshexit,
-    &list
+    &list,
+    &tcat
 };
 
 int tshnums() {
@@ -48,6 +51,27 @@ int tshcd(char **args) {
 
 int tshexit(char **args) {
     return 0;
+
+}
+
+int tcat(char **args) {
+
+    FILE *file = fopen(args[1], "r");
+
+    char line[1024];
+   
+    if (file == NULL) {
+        printf("Unable to open file %s\n", *args);
+        return 1;
+    }
+
+    while ((fgetc(file), sizeof(line), file) != NULL) {
+        printf("%s", line);
+    }
+
+    fclose(file);
+
+    return 1;
 
 }
 
