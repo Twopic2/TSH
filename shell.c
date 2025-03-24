@@ -65,7 +65,8 @@ int tcat(char **args) {
         return 1;
     }
 
-    while ((fgetc(file), sizeof(line), file) != NULL) {
+    while (fgets(line, sizeof(line), file) != NULL) {
+        printf("Read line: %s", line); 
         printf("%s", line);
     }
 
