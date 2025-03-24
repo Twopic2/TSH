@@ -12,6 +12,12 @@
 
 #define TSH_TOK_BUFSIZE 64
 #define TSH_TOK_DELIM " \t\r\n\a"
+#define sizeHistory 10
+
+
+
+char *history[sizeHistory];
+int history_count = 0;
 
 
 //Prototypes
@@ -19,19 +25,23 @@ int tshcd(char **args);
 int tshexit(char **args);
 int list(char **args);
 int tcat(char **args);
+int thistory(char **args);
+
 
 char *builtin_str[] = {
     "tcd",
     "exit",
     "tls",
-    "tcat"
+    "tcat",
+    "thistory"
 };
 
 int (*builtin_func[]) (char **) = {
     &tshcd,
     &tshexit,
     &list,
-    &tcat
+    &tcat,
+    &thistory
 };
 
 int tshnums() {
@@ -66,7 +76,7 @@ int tcat(char **args) {
     }
 
     while (fgets(line, sizeof(line), file) != NULL) {
-        printf("Read line: %s", line); 
+        
         printf("%s", line);
     }
 
@@ -75,6 +85,15 @@ int tcat(char **args) {
     return 1;
 
 }
+
+int thistory(char **args) {
+
+    for (int i = 0; i < history_count; i++) {
+        printf("%d %s\n", i + 1, history[i]);
+    }
+    return 1;
+}
+
 
 int list(char **args) {
 
@@ -143,6 +162,28 @@ int list(char **args) {
     
 }
 
+/**
+ttps://dev.to/hussein_hazimeh_1e1bddf94/simple-shell-in-c-3l3i
+Reference I got in order to get History part working
+**/
+
+void addtohistory(char *args) {
+    
+    if (history_count < sizeHistory) {
+        history[history_count++] = strdup(args);
+
+    } else {
+       
+        free(history[0]);
+
+        for (int i = 0; i < sizeHistory; i++) {
+            history[i - 1] = history[i];
+        }
+        history[sizeHistory - 1] = strdup(args);
+    }
+    history_count = (history_count < sizeHistory) ? history_count + 1 : sizeHistory;
+}
+
 char *tshread() {
     char *line = NULL;
     ssize_t buffersize = 0;
@@ -155,6 +196,7 @@ char *tshread() {
             exit(EXIT_FAILURE);
         }
     }
+    addtohistory(line);
     return line;
 }
 
